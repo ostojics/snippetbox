@@ -5,14 +5,40 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"text/template"
 )
 
 func home(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Hello from Snippetbox!"))
+	if r.URL.Path != "/" {
+		http.NotFound(w, r)
+		return
+	}
+
+	files := []string{
+		"./ui/html/base.html",
+		"./ui/html/pages/home.html",
+		"./ui/html/partials/nav.html",
+	}
+
+	ts, err := template.ParseFiles(files...)
+
+	if err != nil {
+		log.Print(err.Error())
+		http.Error(w, "Internal Server Error", 500)
+		return
+	}
+
+	err = ts.ExecuteTemplate(w, "base", nil)
+
+	if err != nil {
+		log.Print(err.Error())
+		http.Error(w, "Internal Server Error", 500)
+	}
 }
 
 func snippetView(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(r.URL.Query().Get("id"))
+
 	if err != nil || id < 1 {
 		http.NotFound(w, r)
 		return
@@ -28,20 +54,5 @@ func snippetCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte("Create a new snippet"))
-
-}
-
-func main() {
-	mux := http.NewServeMux()
-	mux.HandleFunc("/", home)
-	mux.HandleFunc("/snippet/view", snippetView)
-	mux.HandleFunc("/snippet/create", snippetCreate)
-
-	log.Print("Listening on port 8080")
-	err := http.ListenAndServe(":8080", mux)
-
-	if err != nil {
-		log.Fatal(err)
-	}
+	w.Write([]byte("Create a new snippet..."))
 }
