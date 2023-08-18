@@ -1,14 +1,15 @@
 {{define "nav"}}
 <nav>
-  <div aria-label="main links">
+  <div>
     <a href="/">Home</a>
     {{if .IsAuthenticated}}
     <a href="/snippet/create">Create snippet</a>
     {{end}}
   </div>
-  <div aria-label="auth links">
+  <div>
     {{if .IsAuthenticated}}
     <form action="/user/logout" method="POST">
+      <input type="hidden" name="csrf_token" value="{{.CSRFToken}}" />
       <button>Logout</button>
     </form>
     {{else}}
