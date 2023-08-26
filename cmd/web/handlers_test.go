@@ -1,34 +1,20 @@
 package main
 
 import (
-	"bytes"
-	"io"
 	"net/http"
-	"net/http/httptest"
 	"testing"
 
 	"github.com/ostojics/snippetbox/internal/assert"
 )
 
 func TestPing(t *testing.T) {
-	responseRecorder := httptest.NewRecorder()
+	app := newTestApplication(t)
 
-	mockRequest, err := http.NewRequest(http.MethodGet, "/", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+	ts := newTestServer(t, app.routes())
+	defer ts.Close()
 
-	ping(responseRecorder, mockRequest)
-	result := responseRecorder.Result()
+	code, _, body := ts.get(t, "/health")
 
-	assert.Equal(t, result.StatusCode, http.StatusOK)
-
-	defer result.Body.Close()
-	body, err := io.ReadAll(result.Body)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	body = bytes.TrimSpace(body)
-	assert.Equal(t, string(body), "OK")
+	assert.Equal(t, code, http.StatusOK)
+	assert.Equal(t, body, "OK")
 }
